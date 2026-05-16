@@ -1,0 +1,8 @@
+fastapi
+uvicorn
+sqlalchemy
+psycopg2-binary
+pip install 'pydantic[email]'
+pip install python-dotenv
+pip install python-jose passlib[bcrypt]
+pip install python-multipart

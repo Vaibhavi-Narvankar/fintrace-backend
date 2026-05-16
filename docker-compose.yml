@@ -1,0 +1,16 @@
+services:
+  postgres:
+    image: postgres:18.1
+    container_name: finTrace_postgres
+    
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: finTrace_user
+      POSTGRES_PASSWORD: finTrace_password
+      POSTGRES_DB: finTrace_db
+    volumes:
+      - postgres_data:/var/lib/postgresql
+
+volumes:
+  postgres_data:
