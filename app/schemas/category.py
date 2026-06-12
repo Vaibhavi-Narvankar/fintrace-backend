@@ -3,9 +3,9 @@ from typing import Optional
 
 
 class CategoryCreate(BaseModel):
-    name:str
+    name: str
     budget: float | None = None
-
+    color: str | None = None
 
 class CategoryResponse(BaseModel):
     id:int

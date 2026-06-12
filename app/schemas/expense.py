@@ -5,11 +5,14 @@ from typing import Optional
 
 
 class ExpenseCreate(BaseModel):
-    expense_name:str
-    expense_amount:Decimal
-    expense_date:date
-    payment_type:str
-    category_id:int
+    expense_name: str
+    expense_amount: Decimal
+    expense_date: date
+    payment_type: str
+    category_id: int
+
+    tax_percent: Optional[Decimal] = None
+    tax_amount: Optional[Decimal] = None
 
 class ExpenseResponse(BaseModel):
     id:int
@@ -17,7 +20,10 @@ class ExpenseResponse(BaseModel):
     expense_amount:Decimal
     expense_date:datetime
     payment_type:str
-    created_at:datetime
+    tax_percent: Optional[Decimal] = None
+    tax_amount: Optional[Decimal] = None
+
+    created_at: datetime
 
     class Config:
         from_attributes = True
