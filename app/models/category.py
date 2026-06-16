@@ -6,7 +6,7 @@ from sqlalchemy.orm import relationship
 class Category(Base):
     __tablename__ = 'category'
     id = Column(Integer, primary_key=True)
-    user_id = Column(Integer, ForeignKey("users.id"))
+    user_id = Column(Integer, ForeignKey("users.id"),index=True)
     name = Column(String(50), nullable=False, unique=True)
     color = Column(String(50), nullable=True)
     budget = Column(Numeric(10, 2), nullable=True)

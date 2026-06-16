@@ -8,11 +8,11 @@ class Expense(Base):
     __tablename__ = "expenses"
 
     id = Column(Integer, primary_key=True)
-    user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
-    category_id = Column(Integer, ForeignKey('category.id'), nullable=False)
+    user_id = Column(Integer, ForeignKey('users.id'), nullable=False,index=True)
+    category_id = Column(Integer, ForeignKey('category.id'), nullable=False,index=True)
     expense_name = Column(String, nullable=False)
     expense_amount = Column(Numeric(10, 2), nullable=False)
-    expense_date = Column(DateTime, nullable=False)
+    expense_date = Column(DateTime, nullable=False,index=True)
     payment_type = Column(String, nullable=False)
     is_auto_fetched = Column(Boolean, default=False)
     tax_percent = Column(Numeric(5, 2), nullable=True)
