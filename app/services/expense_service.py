@@ -1,6 +1,6 @@
 from fastapi import HTTPException
 from sqlalchemy.orm import Session
-from app.db.models.category import Category
+from app.models.category import Category
 
 
 def validate_category_ownership(

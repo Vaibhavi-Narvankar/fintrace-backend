@@ -1,7 +1,7 @@
 from sqlalchemy import func
 from sqlalchemy.orm import Session
-from app.db.models import Expense
-from app.db.models.category import Category
+from app.models import Expense
+from app.models.category import Category
 
 
 def get_user_categories_with_budget(db:Session,user_id:int):

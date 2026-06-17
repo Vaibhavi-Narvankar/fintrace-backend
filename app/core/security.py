@@ -8,7 +8,7 @@ from fastapi import Depends, HTTPException
 from jose import jwt, JWTError
 from app.db.session import get_db
 from sqlalchemy.orm import Session
-from app.db.models.user import User
+from app.models.user import User
 
 load_dotenv()
 
