@@ -17,7 +17,7 @@ def create_expense(
         db: Session = Depends(get_db),
         current_user: User = Depends(get_current_user)
 ):
-    existing = db.query(Expense).filter(Expense.expense_name == expense.expense_name, Expense.user_id == current_user.id).first()
+    existing = db.query(Expense).filter(Expense.expense_name == expense.expense_name, Expense.user_id == current_user.id, Expense.is_deleted == False).first()
 
     if existing:
         raise HTTPException(status_code=400, detail="Expense already exists")
@@ -52,6 +52,7 @@ def get_expenses(
         current_user : User = Depends(get_current_user)
 ):
     expenses = db.query(Expense).filter(
+        Expense.is_deleted == False,
         Expense.user_id == current_user.id
     ).all()
 
@@ -67,7 +68,8 @@ def update_expense(
 ):
     expense = db.query(Expense).filter(
         Expense.id == expense_id,
-        Expense.user_id == current_user.id
+        Expense.user_id == current_user.id,
+        Expense.is_deleted == False
     ).first()
 
     if not expense:
@@ -111,13 +113,14 @@ def delete_expense(
 ):
     expense = db.query(Expense).filter(
         Expense.id == expense_id,
-        Expense.user_id == current_user.id
+        Expense.user_id == current_user.id,
+        Expense.is_deleted == False
     ).first()
 
     if not expense:
         raise HTTPException(status_code=404, detail="Expense not found")
 
-    db.delete(expense)
+    expense.is_deleted = True
     db.commit()
 
 

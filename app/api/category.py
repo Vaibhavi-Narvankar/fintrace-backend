@@ -15,7 +15,7 @@ def create_category(
         db: Session = Depends(get_db),
         current_user: User = Depends(get_current_user)
 ):
-    existing = db.query(Category).filter(Category.name == category.name, Category.user_id == current_user.id).first()
+    existing = db.query(Category).filter(Category.name == category.name, Category.user_id == current_user.id,Category.is_deleted==False).first()
 
     if existing:
         raise HTTPException(status_code=400, detail="Category already exists")
@@ -44,7 +44,8 @@ def get_category(
         db: Session = Depends(get_db),
         current_user : User = Depends(get_current_user)
 ):
-    category = db.query(Category).filter(Category.id==category_id,Category.user_id==current_user.id).first()
+    category = db.query(Category).filter(Category.id==category_id,Category.user_id==current_user.id,
+                                         Category.is_deleted == False).first()
 
     if not category:
         raise HTTPException(status_code=404, detail="Category not found")
@@ -58,12 +59,13 @@ def update_category(
         db:Session=Depends(get_db),
         current_user : User = Depends(get_current_user)
 ):
-    category = db.query(Category).filter(Category.id == category_id, Category.user_id == current_user.id).first()
+    category = db.query(Category).filter(Category.id == category_id, Category.user_id == current_user.id, Category.is_deleted == False).first()
 
     existing = db.query(Category).filter(
         Category.name == category_data.name,
         Category.user_id == current_user.id,
-        Category.id != category_id
+        Category.id != category_id,
+        Category.is_deleted == False
     ).first()
 
     if existing:
@@ -90,12 +92,14 @@ def delete_category(category_id:int,
                     current_user: User = Depends(get_current_user)
                     ):
     category = db.query(Category).filter(Category.id == category_id,
-                                         Category.user_id == current_user.id).first()
+                                         Category.user_id == current_user.id,
+                                         Category.is_deleted == False
+                                         ).first()
 
     if not category:
         raise HTTPException(status_code=404, detail="Category not found")
 
-    db.delete(category)
+    category.is_deleted = True
     db.commit()
 
 

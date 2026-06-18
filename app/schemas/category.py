@@ -13,6 +13,8 @@ class CategoryResponse(BaseModel):
     budget: float | None = None
     total_spent: float = 0
     is_over_budget: bool = False
+    created_at: datetime
+    updated_at: datetime
 
     class Config:
         from_attributes = True

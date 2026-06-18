@@ -15,6 +15,7 @@ class UserResponse(BaseModel):
     id: int
     email: EmailStr
     created_at: datetime
+    updated_at: datetime
 
     class Config:
         from_attributes = True

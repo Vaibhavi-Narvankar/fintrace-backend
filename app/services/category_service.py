@@ -6,7 +6,8 @@ from app.models.category import Category
 
 def get_user_categories_with_budget(db:Session,user_id:int):
     categories = db.query(Category).filter(
-        Category.user_id == user_id
+        Category.user_id == user_id,
+        Category.is_deleted == False
     ).all()
 
     result = []

@@ -1,6 +1,8 @@
-from sqlalchemy import Column, Integer, String, ForeignKey, Numeric
+from sqlalchemy import Column, Integer, String, ForeignKey,Boolean, Numeric, DateTime
 from app.db.base import Base
 from sqlalchemy.orm import relationship
+from sqlalchemy.sql import func
+
 
 
 class Category(Base):
@@ -12,5 +14,20 @@ class Category(Base):
     budget = Column(Numeric(10, 2), nullable=True)
     expenses = relationship("Expense", back_populates="category")
     user = relationship("User", back_populates="categories")
+    is_deleted = Column(
+        Boolean,
+        default=False,
+        nullable=False
+    )
+    created_at = Column(
+        DateTime(timezone=True),
+        server_default=func.now()
+    )
+    updated_at = Column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+        onupdate=func.now()
+    )
+
 
 

@@ -1,5 +1,5 @@
-from sqlalchemy import DateTime, Column, Integer ,String, ForeignKey, Numeric, Boolean
-from datetime import datetime, timezone
+from sqlalchemy import DateTime, Column, Integer ,String, ForeignKey, Numeric, Boolean, DATETIME
+from sqlalchemy.sql import func
 from app.db.base import Base
 from sqlalchemy.orm import relationship
 
@@ -17,6 +17,19 @@ class Expense(Base):
     is_auto_fetched = Column(Boolean, default=False)
     tax_percent = Column(Numeric(5, 2), nullable=True)
     tax_amount = Column(Numeric(10, 2), nullable=True)
-    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
     user = relationship("User", back_populates="expenses")
     category = relationship("Category", back_populates="expenses")
+    is_deleted = Column(
+        Boolean,
+        default=False,
+        nullable=False
+    )
+    created_at = Column(
+        DateTime(timezone=True),
+        server_default=func.now()
+    )
+    updated_at = Column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+        onupdate=func.now()
+    )
