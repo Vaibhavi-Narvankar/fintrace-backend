@@ -11,3 +11,5 @@ __pycache__/
 
 # IDE files
 .idea/
+
+alembic/__pycache__/
