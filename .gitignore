@@ -13,3 +13,4 @@ __pycache__/
 .idea/
 
 alembic/__pycache__/
+.DS_Store
