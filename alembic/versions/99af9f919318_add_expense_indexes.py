@@ -25,7 +25,12 @@ def upgrade() -> None:
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('email', sa.String(), nullable=False),
     sa.Column('password', sa.String(), nullable=False),
-    sa.Column('created_at', sa.DateTime(), nullable=True),
+    sa.Column(
+        'created_at',
+        sa.DateTime(timezone=True),
+        server_default=sa.text('now()'),
+        nullable=False
+    ),
     sa.PrimaryKeyConstraint('id'),
     sa.UniqueConstraint('email')
     )
@@ -51,7 +56,12 @@ def upgrade() -> None:
     sa.Column('is_auto_fetched', sa.Boolean(), nullable=True),
     sa.Column('tax_percent', sa.Numeric(precision=5, scale=2), nullable=True),
     sa.Column('tax_amount', sa.Numeric(precision=10, scale=2), nullable=True),
-    sa.Column('created_at', sa.DateTime(), nullable=True),
+    sa.Column(
+        'created_at',
+        sa.DateTime(timezone=True),
+        server_default=sa.text('now()'),
+        nullable=False
+    ),
     sa.ForeignKeyConstraint(['category_id'], ['category.id'], ),
     sa.ForeignKeyConstraint(['user_id'], ['users.id'], ),
     sa.PrimaryKeyConstraint('id')
