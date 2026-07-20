@@ -63,37 +63,46 @@ def create_category_service(db: Session,
         return new_category
 
 def update_category_service(
-        db: Session,
-        category_id: int,
-        category_data: CategoryUpdate,
-        user_id: int
+    db: Session,
+    category_id: int,
+    category_data: CategoryUpdate,
+    user_id: int
 ):
-                category = db.query(Category).filter(Category.id == category_id, Category.user_id == user_id,
-                                                     Category.is_deleted == False).first()
+    category = db.query(Category).filter(
+        Category.id == category_id,
+        Category.user_id == user_id,
+        Category.is_deleted == False
+    ).first()
 
-                existing = db.query(Category).filter(
-                    Category.name == category_data.name,
-                    Category.user_id == user_id,
-                    Category.id != category_id,
-                    Category.is_deleted == False
-                ).first()
+    if not category:
+        raise HTTPException(
+            status_code=404,
+            detail="Category not found"
+        )
 
-                if existing:
-                    raise HTTPException(status_code=400, detail="Category already exists")
+    update_data = category_data.model_dump(exclude_unset=True)
 
-                if not category:
-                    raise HTTPException(status_code=404, detail="Category not found")
+    if "name" in update_data:
+        existing = db.query(Category).filter(
+            Category.name == update_data["name"],
+            Category.user_id == user_id,
+            Category.id != category_id,
+            Category.is_deleted == False
+        ).first()
 
-                if category_data.name is not None:
-                    category.name = category_data.name
+        if existing:
+            raise HTTPException(
+                status_code=400,
+                detail="Category already exists"
+            )
 
-                if category_data.budget is not None:
-                    category.budget = category_data.budget
+    for field, value in update_data.items():
+        setattr(category, field, value)
 
-                db.commit()
-                db.refresh(category)
+    db.commit()
+    db.refresh(category)
 
-                return category
+    return category
 
 def delete_category_service(
     db: Session,

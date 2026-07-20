@@ -75,34 +75,28 @@ def update_expense_service(db: Session,expense_id:int, expense_data: ExpenseUpda
     if not expense:
         raise HTTPException(status_code=404, detail="Expense not found")
 
-    # 🔹 update only provided fields
-    if expense_data.expense_name is not None:
-        expense.expense_name = expense_data.expense_name
+    update_data = expense_data.model_dump(exclude_unset=True)
 
-    if expense_data.expense_amount is not None:
-        expense.expense_amount = expense_data.expense_amount
-
-    if expense_data.expense_date is not None:
-        expense.expense_date = datetime.combine(
-            expense_data.expense_date,
-            datetime.min.time()
-        )
-
-    if expense_data.payment_type is not None:
-        expense.payment_type = expense_data.payment_type
-
-    if expense_data.category_id is not None:
+    if "category_id" in update_data:
         validate_category_ownership(
             db,
-            expense_data.category_id,
+            update_data["category_id"],
             user_id
         )
 
-        expense.category_id = expense_data.category_id
+    # Convert date -> datetime if needed
+
+    if "expense_date" in update_data:
+        update_data["expense_date"] = datetime.combine(
+            update_data["expense_date"],
+            datetime.min.time()
+        )
+
+    for field, value in update_data.items():
+        setattr(expense, field, value)
 
     db.commit()
     db.refresh(expense)
-
     return expense
 
 def delete_expense_service(db: Session, expense_id:int, user_id:int):
