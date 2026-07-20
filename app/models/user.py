@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, DateTime, Boolean
+from sqlalchemy import Column, Integer, String, DateTime, Boolean,Numeric
 from sqlalchemy.sql import func
 from sqlalchemy.orm import relationship
 from app.db.base import Base
@@ -24,4 +24,16 @@ class User(Base):
         DateTime(timezone=True),
         server_default=func.now(),
         onupdate=func.now()
+    )
+    name = Column(String(100), nullable=True)
+    profile_picture = Column(String, nullable=True)
+    currency = Column(String(3), default="INR", nullable=False)
+    timezone = Column(String(50), default="Asia/Kolkata", nullable=False)
+    monthly_income = Column(
+        Numeric(10, 2),
+        nullable=True
+    )
+    monthly_salary_date = Column(
+        Integer,
+        nullable=True
     )
