@@ -27,11 +27,18 @@ class User(Base):
     )
     name = Column(String(100), nullable=True)
     profile_picture = Column(String, nullable=True)
-    currency = Column(String(3), default="INR", nullable=False)
-    timezone = Column(String(50), default="Asia/Kolkata", nullable=False)
-    monthly_income = Column(
-        Numeric(10, 2),
-        nullable=True
+    currency = Column(
+        String(3),
+        default="INR",
+        server_default="INR",
+        nullable=False
+    )
+
+    timezone = Column(
+        String(50),
+        default="Asia/Kolkata",
+        server_default="Asia/Kolkata",
+        nullable=False
     )
     monthly_salary_date = Column(
         Integer,
