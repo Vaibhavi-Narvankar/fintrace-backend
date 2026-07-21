@@ -1,7 +1,7 @@
 from datetime import datetime
-
 from pydantic import BaseModel, EmailStr
 from typing import Optional
+from decimal import Decimal
 
 
 class UserCreate(BaseModel):
@@ -10,12 +10,14 @@ class UserCreate(BaseModel):
 
 class UserUpdate(BaseModel):
     email: Optional[EmailStr] = None
+    monthly_income: Decimal | None = None
 
 class UserResponse(BaseModel):
     id: int
     email: EmailStr
     created_at: datetime
     updated_at: datetime
+    monthly_income: Decimal | None
 
     class Config:
         from_attributes = True

@@ -16,10 +16,10 @@ def update_profile_service(
 
     update_data = profile_data.model_dump(exclude_unset=True)
 
-     for field, value in update_data.items():
+    for field, value in update_data.items():
          setattr(current_user, field, value)
 
-     db.commit()
-     db.refresh(current_user)
+    db.commit()
+    db.refresh(current_user)
 
-     return current_user
+    return current_user

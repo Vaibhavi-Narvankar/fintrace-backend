@@ -40,7 +40,11 @@ class User(Base):
         server_default="Asia/Kolkata",
         nullable=False
     )
-    monthly_salary_date = Column(
-        Integer,
+    monthly_income = Column(
+        Numeric(10, 2),
         nullable=True
     )
+    monthly_salary_date = Column(
+            Integer,
+            nullable=True
+        )

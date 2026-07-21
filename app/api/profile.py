@@ -1,19 +1,15 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
-
 from app.db.session import get_db
 from app.core.security import get_current_user
 from app.models.user import User
+from app.services.profile_services import get_profile_service,update_profile_service
 
 from app.schemas.profile import (
     ProfileResponse,
     ProfileUpdate
 )
 
-from app.services.profile_service import (
-    get_profile_service,
-    update_profile_service
-)
 
 router = APIRouter(
     prefix="/profile",
