@@ -1,10 +1,14 @@
 from decimal import Decimal
-from sqlalchemy import func
+from sqlalchemy import func, extract
 from sqlalchemy.orm import Session
 from app.models.user import User
 from app.models.expense import Expense
 from app.models.category import Category
-from app.schemas.dashboard import DashboardSummaryResponse
+from app.schemas.dashboard import (
+    DashboardTrendResponse,
+    TrendPoint,
+)
+from datetime import datetime
 
 def get_dashboard_summary_service(
     db: Session,
@@ -45,3 +49,44 @@ def get_dashboard_summary_service(
        monthly_income=monthly_income,
        remaining_balance=remaining_balance
    )
+
+def get_dashboard_trends_service(
+    db: Session,
+    current_user: User,
+    period: str
+):
+    current_year = datetime.now().year
+
+    results = (
+        db.query(
+            func.date_trunc(
+                "month",
+                Expense.expense_date
+            ).label("month"),
+            func.coalesce(
+                func.sum(Expense.expense_amount),
+                0
+            ).label("amount")
+        )
+        .filter(
+            Expense.user_id == current_user.id,
+            Expense.is_deleted.is_(False),
+            extract(
+                "year",
+                Expense.expense_date
+            ) == current_year
+        )
+        .group_by("month")
+        .order_by("month")
+        .all()
+    )
+
+    trends = [
+        TrendPoint(
+            label=row.month.strftime("%b"),
+            amount=row.amount
+        )
+        for row in results
+    ]
+
+    return DashboardTrendResponse(trends=trends)

@@ -11,3 +11,11 @@ class DashboardSummaryResponse(BaseModel):
     model_config = {
         "from_attributes": True
     }
+
+class TrendPoint(BaseModel):
+    label: str
+    amount: Decimal
+
+
+class DashboardTrendResponse(BaseModel):
+    trends: list[TrendPoint]
