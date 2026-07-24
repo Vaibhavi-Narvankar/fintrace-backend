@@ -212,8 +212,8 @@ def get_highest_category_service(
 
     result = (
         db.query(
-            Category.category_name.label("category_name"),
-            Category.category_color.label("category_color"),
+            Category.name.label("name"),
+            Category.color.label("color"),
             func.sum(Expense.expense_amount).label("total_amount"),
         )
         .join(Category, Expense.category_id == Category.id)
@@ -225,8 +225,8 @@ def get_highest_category_service(
         )
         .group_by(
             Category.id,
-            Category.category_name,
-            Category.category_color,
+            Category.name,
+            Category.color,
         )
         .order_by(func.sum(Expense.expense_amount).desc())
         .first()
@@ -236,8 +236,8 @@ def get_highest_category_service(
         return None
 
     return HighestCategoryResponse(
-        category_name=result.category_name,
-        category_color=result.category_color,
+        category_name=result.name,
+        category_color=result.color,
         total_amount=result.total_amount,
     )
 
@@ -293,10 +293,10 @@ def get_recurring_expenses_service(
             Expense.expense_name,
         )
         .having(
-            func.count(Expense.id) > 1
+            func.count(Expense.id) > 1,
         )
         .order_by(
-            func.count(Expense.id).desc()
+            func.count(Expense.id).desc(),
         )
         .all()
     )

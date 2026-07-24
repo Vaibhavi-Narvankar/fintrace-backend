@@ -19,17 +19,10 @@ class TrendPoint(BaseModel):
 class DashboardTrendResponse(BaseModel):
     trends: list[TrendPoint]
 
-class CategoryBreakdownItem(BaseModel):
-    category_name: str
-    category_color: str
-    total_amount: Decimal
-
-class CategoryBreakdownResponse(BaseModel):
-    categories: list[CategoryBreakdownItem]
 
 class HighestCategoryResponse(BaseModel):
     category_name: str
-    category_color: str
+    category_color: str | None
     total_amount: Decimal
 
 class BudgetProgressResponse(BaseModel):
@@ -37,10 +30,20 @@ class BudgetProgressResponse(BaseModel):
     total_spent: Decimal
     remaining_balance: Decimal
 
+
+class CategoryBreakdownItem(BaseModel):
+    category_name: str
+    category_color: str | None
+    total_amount: Decimal
+
+
+class CategoryBreakdownResponse(BaseModel):
+    categories: list[CategoryBreakdownItem]
+
+
 class RecurringExpenseItem(BaseModel):
     expense_name: str
     total_occurrences: int
-
 
 class RecurringExpenseResponse(BaseModel):
     recurring_expenses: list[RecurringExpenseItem]

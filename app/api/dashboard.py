@@ -6,7 +6,8 @@ from app.models.user import User
 from app.schemas.dashboard import DashboardSummaryResponse
 from app.services.dashboard_service import (get_dashboard_summary_service,get_dashboard_trends_service,get_category_breakdown_service,
 get_highest_category_service,get_budget_progress_service,get_recurring_expenses_service)
-from app.schemas.dashboard import (CategoryBreakdownResponse,HighestCategoryResponse,BudgetProgressResponse,RecurringExpenseResponse)
+from app.schemas.dashboard import (CategoryBreakdownResponse,HighestCategoryResponse,BudgetProgressResponse,RecurringExpenseResponse,
+CategoryBreakdownResponse,BudgetProgressResponse)
 
 router = APIRouter(
     prefix="/dashboard",
@@ -60,19 +61,6 @@ def get_highest_category(
     current_user: User = Depends(get_current_user),
 ):
     return get_highest_category_service(db, current_user)
-
-@router.get(
-    "/budget-progress",
-    response_model=BudgetProgressResponse,
-)
-def get_budget_progress(
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
-):
-    return get_budget_progress_service(
-        db,
-        current_user,
-    )
 
 @router.get(
     "/budget-progress",
