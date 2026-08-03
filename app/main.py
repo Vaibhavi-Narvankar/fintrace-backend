@@ -5,17 +5,7 @@ from app.db.session import engine
 from app.api import router
 
 
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    # Create tables at startup
-    Base.metadata.create_all(bind=engine)
-    yield
-    # (optional cleanup code here)
-
-
-app = FastAPI(lifespan=lifespan)
-
-
+app = FastAPI()
 app.include_router(router)
 
 @app.get("/")

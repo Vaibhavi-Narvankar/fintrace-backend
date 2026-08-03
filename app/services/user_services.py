@@ -1,5 +1,6 @@
 from fastapi import HTTPException
-from sqlalchemy.orm import Session
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 from jose import jwt, JWTError
 from app.core.security import(
   verify_password, create_access_token,
@@ -11,12 +12,19 @@ from fastapi.security import OAuth2PasswordRequestForm
 from app.models.user import User
 
 
-def create_user_service(db: Session, user: UserCreate):
+async def create_user_service(
+    db: AsyncSession,
+    user: UserCreate
+):
     hashed_password = hash_password(user.password)
-    existing_user = db.query(User).filter(
+
+    statement = select(User).where(
         User.email == user.email,
-        User.is_deleted == False
-    ).first()
+        User.is_deleted.is_(False)
+    )
+
+    result = await db.execute(statement)
+    existing_user = result.scalars().first()
 
     if existing_user:
         raise HTTPException(
@@ -30,21 +38,38 @@ def create_user_service(db: Session, user: UserCreate):
     )
 
     db.add(db_user)
-    db.commit()
-    db.refresh(db_user)
+
+    await db.commit()
+    await db.refresh(db_user)
+
     return db_user
 
-def user_login_service(
-        db: Session,
-        form_data: OAuth2PasswordRequestForm
+async def user_login_service(
+    db: AsyncSession,
+    form_data: OAuth2PasswordRequestForm
 ):
-    db_user = db.query(User).filter(User.email == form_data.username,User.is_deleted == False).first()
+    statement = select(User).where(
+        User.email == form_data.username,
+        User.is_deleted.is_(False)
+    )
+
+    result = await db.execute(statement)
+    db_user = result.scalars().first()
 
     if not db_user:
-        raise HTTPException(status_code=404, detail="User not found")
+        raise HTTPException(
+            status_code=404,
+            detail="User not found"
+        )
 
-    if not verify_password(form_data.password, db_user.password):
-        raise HTTPException(status_code=401, detail="Invalid credentials")
+    if not verify_password(
+        form_data.password,
+        db_user.password
+    ):
+        raise HTTPException(
+            status_code=401,
+            detail="Invalid credentials"
+        )
 
     access_token = create_access_token({
         "sub": db_user.email
@@ -60,54 +85,65 @@ def user_login_service(
         "token_type": "bearer"
     }
 
-def get_user_service(db: Session,current_user: User):
-    users = db.query(User).filter(
-    User.is_deleted == False
-    ).all()
+async def get_user_service(
+    db: AsyncSession,
+    current_user: User
+):
+    statement = select(User).where(
+        User.is_deleted.is_(False)
+    )
+
+    result = await db.execute(statement)
+
+    users = result.scalars().all()
+
     return users
 
-def refresh_access_token_service(
-     db: Session,
-     refresh_token: str
- ):
-     try:
-         payload = jwt.decode(
-             refresh_token,
-             SECRET_KEY,
-             algorithms=[ALGORITHM]
-         )
+async def refresh_access_token_service(
+    db: AsyncSession,
+    refresh_token: str
+):
+    try:
+        payload = jwt.decode(
+            refresh_token,
+            SECRET_KEY,
+            algorithms=[ALGORITHM]
+        )
 
-         email = payload.get("sub")
-         token_type = payload.get("type")
+        email = payload.get("sub")
+        token_type = payload.get("type")
 
-         if email is None or token_type != "refresh":
-             raise HTTPException(
-                 status_code=401,
-                 detail="Invalid refresh token"
-             )
+        if email is None or token_type != "refresh":
+            raise HTTPException(
+                status_code=401,
+                detail="Invalid refresh token"
+            )
 
-         user = db.query(User).filter(
-             User.email == email,
-             User.is_deleted == False
-         ).first()
+        statement = select(User).where(
+            User.email == email,
+            User.is_deleted.is_(False)
+        )
 
-         if not user:
-             raise HTTPException(
-                 status_code=401,
-                 detail="Could not validate credentials"
-             )
+        result = await db.execute(statement)
+        user = result.scalars().first()
 
-         new_access_token = create_access_token({
-             "sub": user.email
-         })
+        if not user:
+            raise HTTPException(
+                status_code=401,
+                detail="Could not validate credentials"
+            )
 
-         return {
-             "access_token": new_access_token,
-             "token_type": "bearer"
-         }
+        new_access_token = create_access_token({
+            "sub": user.email
+        })
 
-     except JWTError:
-         raise HTTPException(
-             status_code=401,
-             detail="Invalid or expired refresh token"
-         )
+        return {
+            "access_token": new_access_token,
+            "token_type": "bearer"
+        }
+
+    except JWTError:
+        raise HTTPException(
+            status_code=401,
+            detail="Invalid or expired refresh token"
+        )

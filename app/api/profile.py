@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
 from app.db.session import get_db
 from app.core.security import get_current_user
 from app.models.user import User
@@ -24,13 +24,13 @@ def get_profile(
     return get_profile_service(current_user)
 
 @router.patch("/", response_model=ProfileResponse)
-def update_profile(
+async def update_profile(
     profile_data: ProfileUpdate,
-    db: Session = Depends(get_db),
+    db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
 
-    return update_profile_service(
+    return await update_profile_service(
         db,
         profile_data,
         current_user

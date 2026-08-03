@@ -1,4 +1,4 @@
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
 from app.models.user import User
 from app.schemas.profile import ProfileUpdate
 
@@ -8,18 +8,19 @@ def get_profile_service(
 ):
     return current_user
 
-def update_profile_service(
-    db: Session,
+async def update_profile_service(
+    db: AsyncSession,
     profile_data: ProfileUpdate,
     current_user: User
 ):
-
-    update_data = profile_data.model_dump(exclude_unset=True)
+    update_data = profile_data.model_dump(
+        exclude_unset=True
+    )
 
     for field, value in update_data.items():
-         setattr(current_user, field, value)
+        setattr(current_user, field, value)
 
-    db.commit()
-    db.refresh(current_user)
+    await db.commit()
+    await db.refresh(current_user)
 
     return current_user

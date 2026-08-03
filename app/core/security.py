@@ -3,10 +3,11 @@ from fastapi.security import OAuth2PasswordBearer
 from passlib.context import CryptContext
 import os
 from dotenv import load_dotenv
-from fastapi import Depends, HTTPException
+from fastapi import Depends, HTTPException, status
 from jose import jwt, JWTError
 from app.db.session import get_db
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select
 from app.models.user import User
 
 load_dotenv()
@@ -69,10 +70,16 @@ def create_refresh_token(data: dict):
 
 
 
-def get_current_user(
+async def get_current_user(
     token: str = Depends(oauth2_scheme),
-    db: Session = Depends(get_db)
+    db: AsyncSession = Depends(get_db)
 ):
+    credentials_exception = HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Could not validate credentials",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
+
     try:
         payload = jwt.decode(
             token,
@@ -84,26 +91,21 @@ def get_current_user(
         token_type = payload.get("type")
 
         if email is None or token_type != "access":
-            raise HTTPException(
-                status_code=401,
-                detail="Invalid access token"
-            )
+            raise credentials_exception
 
-        user = db.query(User).filter(
+        statement = select(User).where(
             User.email == email,
-            User.is_deleted == False
-        ).first()
+            User.is_deleted.is_(False)
+        )
+
+        result = await db.execute(statement)
+
+        user = result.scalars().first()
 
         if user is None:
-            raise HTTPException(
-                status_code=401,
-                detail="Could not validate credentials"
-            )
+            raise credentials_exception
 
         return user
 
     except JWTError:
-        raise HTTPException(
-            status_code=401,
-            detail="Could not validate credentials"
-        )
+        raise credentials_exception

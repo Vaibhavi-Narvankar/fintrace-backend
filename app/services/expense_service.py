@@ -1,16 +1,43 @@
+from datetime import datetime
 from fastapi import HTTPException
-from sqlalchemy.orm import Session
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 from app.models.category import Category
 from app.models.expense import Expense
 from app.schemas.expense import ExpenseCreate, ExpenseUpdate
-from datetime import datetime
 
-def create_expense_service(db:Session,expense: ExpenseCreate , user_id:int ):
 
-    validate_category_ownership(
-        db,
-        expense.category_id,
-        user_id
+async def validate_category_ownership(
+    db: AsyncSession,
+    category_id: int,
+    user_id: int
+):
+    statement = select(Category).where(
+        Category.id == category_id,
+        Category.user_id == user_id,
+        Category.is_deleted.is_(False)
+    )
+
+    result = await db.execute(statement)
+    category = result.scalars().first()
+
+    if not category:
+        raise HTTPException(
+            status_code=404,
+            detail="Category not found"
+        )
+
+    return category
+
+async def create_expense_service(
+    db: AsyncSession,
+    expense: ExpenseCreate,
+    user_id: int
+):
+    await validate_category_ownership(
+        db=db,
+        category_id=expense.category_id,
+        user_id=user_id
     )
 
     new_expense = Expense(
@@ -26,65 +53,58 @@ def create_expense_service(db:Session,expense: ExpenseCreate , user_id:int ):
     )
 
     db.add(new_expense)
-    db.commit()
-    db.refresh(new_expense)
+
+    await db.commit()
+    await db.refresh(new_expense)
 
     return new_expense
 
-
-def validate_category_ownership(
-        db: Session,
-        category_id: int,
-        user_id: int
+async def get_expense_service(
+    db: AsyncSession,
+    user_id: int
 ):
-    """
-    🔒 Ensures category belongs to current user.
-    Prevents cross-user access.
-    """
-
-    category = db.query(Category).filter(
-        Category.id == category_id,
-        Category.user_id == user_id,
-        Category.is_deleted == False
-    ).first()
-
-    if not category:
-        raise HTTPException(
-            status_code=404,
-            detail="Category not found"
-        )
-
-    return category
-
-
-def get_expense_service(db: Session, user_id: int):
-    expenses = db.query(Expense).filter(
-        Expense.is_deleted == False,
+    statement = select(Expense).where(
+        Expense.is_deleted.is_(False),
         Expense.user_id == user_id
-    ).all()
+    )
+
+    result = await db.execute(statement)
+
+    expenses = result.scalars().all()
 
     return expenses
 
-def update_expense_service(db: Session,expense_id:int, expense_data: ExpenseUpdate, user_id:int):
-    expense = db.query(Expense).filter(
+async def update_expense_service(
+    db: AsyncSession,
+    expense_id: int,
+    expense_data: ExpenseUpdate,
+    user_id: int
+):
+    statement = select(Expense).where(
         Expense.id == expense_id,
         Expense.user_id == user_id,
-        Expense.is_deleted == False
-    ).first()
+        Expense.is_deleted.is_(False)
+    )
+
+    result = await db.execute(statement)
+    expense = result.scalars().first()
 
     if not expense:
-        raise HTTPException(status_code=404, detail="Expense not found")
-
-    update_data = expense_data.model_dump(exclude_unset=True)
-
-    if "category_id" in update_data:
-        validate_category_ownership(
-            db,
-            update_data["category_id"],
-            user_id
+        raise HTTPException(
+            status_code=404,
+            detail="Expense not found"
         )
 
-    # Convert date -> datetime if needed
+    update_data = expense_data.model_dump(
+        exclude_unset=True
+    )
+
+    if "category_id" in update_data:
+        await validate_category_ownership(
+            db=db,
+            category_id=update_data["category_id"],
+            user_id=user_id
+        )
 
     if "expense_date" in update_data:
         update_data["expense_date"] = datetime.combine(
@@ -95,19 +115,31 @@ def update_expense_service(db: Session,expense_id:int, expense_data: ExpenseUpda
     for field, value in update_data.items():
         setattr(expense, field, value)
 
-    db.commit()
-    db.refresh(expense)
+    await db.commit()
+    await db.refresh(expense)
+
     return expense
 
-def delete_expense_service(db: Session, expense_id:int, user_id:int):
-    expense = db.query(Expense).filter(
+async def delete_expense_service(
+    db: AsyncSession,
+    expense_id: int,
+    user_id: int
+):
+    statement = select(Expense).where(
         Expense.id == expense_id,
         Expense.user_id == user_id,
-        Expense.is_deleted == False
-    ).first()
+        Expense.is_deleted.is_(False)
+    )
+
+    result = await db.execute(statement)
+    expense = result.scalars().first()
 
     if not expense:
-        raise HTTPException(status_code=404, detail="Expense not found")
+        raise HTTPException(
+            status_code=404,
+            detail="Expense not found"
+        )
 
     expense.is_deleted = True
-    db.commit()
+
+    await db.commit()

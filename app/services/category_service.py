@@ -1,78 +1,102 @@
-from sqlalchemy import func
-from sqlalchemy.orm import Session
+from sqlalchemy import func, select
+from sqlalchemy.ext.asyncio import AsyncSession
 from app.models import Expense
 from app.models.category import Category
 from fastapi import HTTPException
 from app.schemas.category import CategoryCreate, CategoryUpdate
 
 
-def get_user_categories_with_budget(db:Session,user_id:int):
-    categories = db.query(Category).filter(
+async def get_user_categories_with_budget(
+    db: AsyncSession,
+    user_id: int
+):
+    statement = select(Category).where(
         Category.user_id == user_id,
-        Category.is_deleted == False,
-    ).all()
+        Category.is_deleted.is_(False),
+    )
 
-    result = []
+    result = await db.execute(statement)
+
+    categories = result.scalars().all()
+
+    response = []
 
     for category in categories:
-        total = db.query(func.sum(Expense.expense_amount)).filter(
+        total_statement = select(
+            func.sum(Expense.expense_amount)
+        ).where(
             Expense.category_id == category.id,
-            Expense.is_deleted == False
-        ).scalar() or 0
+            Expense.is_deleted.is_(False)
+        )
+
+        total_result = await db.execute(total_statement)
+        total = total_result.scalar() or 0
 
         is_over = False
+
         if category.budget:
-           is_over = total > category.budget
+            is_over = total > category.budget
 
-
-        result.append({
+        response.append({
             "id": category.id,
             "name": category.name,
             "budget": float(category.budget) if category.budget else None,
             "total_spent": float(total),
-            "is_over_budget": is_over
+            "is_over_budget": is_over,
+            "created_at": category.created_at,
+            "updated_at": category.updated_at,
         })
 
-    return result
+    return response
 
-def create_category_service(db: Session,
+async def create_category_service(
+    db: AsyncSession,
     category: CategoryCreate,
     user_id: int
-    ):
-        existing = db.query(Category).filter(
-            Category.name == category.name,
-            Category.user_id == user_id,
-            Category.is_deleted == False
-        ).first()
+):
+    statement = select(Category).where(
+        Category.name == category.name,
+        Category.user_id == user_id,
+        Category.is_deleted.is_(False)
+    )
 
-        if existing:
-            raise HTTPException(
-                status_code=400,
-                detail="Category already exists"
-            )
+    result = await db.execute(statement)
 
-        new_category = Category(
-            name=category.name,
-            user_id=user_id
+    existing = result.scalars().first()
+
+    if existing:
+        raise HTTPException(
+            status_code=400,
+            detail="Category already exists"
         )
 
-        db.add(new_category)
-        db.commit()
-        db.refresh(new_category)
+    new_category = Category(
+        name=category.name,
+        user_id=user_id
+    )
 
-        return new_category
+    db.add(new_category)
 
-def update_category_service(
-    db: Session,
+    await db.commit()
+    await db.refresh(new_category)
+
+    return new_category
+
+async def update_category_service(
+    db: AsyncSession,
     category_id: int,
     category_data: CategoryUpdate,
     user_id: int
 ):
-    category = db.query(Category).filter(
+    statement = select(Category).where(
         Category.id == category_id,
         Category.user_id == user_id,
-        Category.is_deleted == False
-    ).first()
+        Category.is_deleted.is_(False)
+    )
+
+    result = await db.execute(statement)
+
+    category = result.scalars().first()
 
     if not category:
         raise HTTPException(
@@ -80,15 +104,24 @@ def update_category_service(
             detail="Category not found"
         )
 
-    update_data = category_data.model_dump(exclude_unset=True)
+    update_data = category_data.model_dump(
+        exclude_unset=True
+    )
 
     if "name" in update_data:
-        existing = db.query(Category).filter(
+
+        existing_statement = select(Category).where(
             Category.name == update_data["name"],
             Category.user_id == user_id,
             Category.id != category_id,
-            Category.is_deleted == False
-        ).first()
+            Category.is_deleted.is_(False)
+        )
+
+        existing_result = await db.execute(
+            existing_statement
+        )
+
+        existing = existing_result.scalars().first()
 
         if existing:
             raise HTTPException(
@@ -99,21 +132,25 @@ def update_category_service(
     for field, value in update_data.items():
         setattr(category, field, value)
 
-    db.commit()
-    db.refresh(category)
+    await db.commit()
+    await db.refresh(category)
 
     return category
 
-def delete_category_service(
-    db: Session,
+async def delete_category_service(
+    db: AsyncSession,
     category_id: int,
     user_id: int
 ):
-    category = db.query(Category).filter(
+    statement = select(Category).where(
         Category.id == category_id,
         Category.user_id == user_id,
-        Category.is_deleted == False
-    ).first()
+        Category.is_deleted.is_(False)
+    )
+
+    result = await db.execute(statement)
+
+    category = result.scalars().first()
 
     if not category:
         raise HTTPException(
@@ -123,23 +160,27 @@ def delete_category_service(
 
     category.is_deleted = True
 
-    db.commit()
+    await db.commit()
 
-def get_category_service(
-            db: Session,
-            category_id: int,
-            user_id: int
-    ):
-        category = db.query(Category).filter(
-            Category.id == category_id,
-            Category.user_id == user_id,
-            Category.is_deleted == False
-        ).first()
+async def get_category_service(
+    db: AsyncSession,
+    category_id: int,
+    user_id: int
+):
+    statement = select(Category).where(
+        Category.id == category_id,
+        Category.user_id == user_id,
+        Category.is_deleted.is_(False)
+    )
 
-        if not category:
-            raise HTTPException(
-                status_code=404,
-                detail="Category not found"
-            )
+    result = await db.execute(statement)
 
-        return category
+    category = result.scalars().first()
+
+    if not category:
+        raise HTTPException(
+            status_code=404,
+            detail="Category not found"
+        )
+
+    return category

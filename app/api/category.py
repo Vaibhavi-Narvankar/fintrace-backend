@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
 from app.db.session import get_db
 from app.models.category import Category
 from app.schemas.category import CategoryCreate, CategoryResponse, CategoryUpdate
@@ -16,50 +16,50 @@ from app.services.category_service import (
 router = APIRouter(prefix="/categories", tags=["Categories"])
 
 @router.post("/", response_model=CategoryResponse)
-def create_category(
+async def create_category(
         category:CategoryCreate,
-        db: Session = Depends(get_db),
+        db: AsyncSession = Depends(get_db),
         current_user: User = Depends(get_current_user)
 ):
-    return create_category_service(
+    return await create_category_service(
         db,
         category,
         current_user.id
     )
 
 @router.get("/", response_model=list[CategoryResponse])
-def get_categories(
-        db: Session = Depends(get_db),
+async def get_categories(
+        db: AsyncSession = Depends(get_db),
         current_user : User = Depends(get_current_user)
 ):
-    return get_user_categories_with_budget(db, current_user.id)
+    return await get_user_categories_with_budget(db, current_user.id)
 
 @router.get("/{category_id}", response_model=CategoryResponse)
-def get_category(
+async def get_category(
         category_id : int,
-        db: Session = Depends(get_db),
+        db: AsyncSession = Depends(get_db),
         current_user : User = Depends(get_current_user)
 ):
-    return get_category_service(
+    return await get_category_service(
         db,
     category_id,
     current_user.id)
 
 @router.patch("/{category_id}", response_model=CategoryResponse)
-def update_category(
+async def update_category(
         category_id : int,
         category_data : CategoryUpdate,
-        db:Session=Depends(get_db),
+        db:AsyncSession=Depends(get_db),
         current_user : User = Depends(get_current_user)
 ):
-    return update_category_service(db, category_id, category_data, current_user.id)
+    return await update_category_service(db, category_id, category_data, current_user.id)
 
 
 @router.delete("/{category_id}", status_code=204)
-def delete_category(category_id:int,
-                    db:Session=Depends(get_db),
+async def delete_category(category_id:int,
+                    db:AsyncSession=Depends(get_db),
                     current_user: User = Depends(get_current_user)
                     ):
-    return delete_category_service(db, category_id, current_user.id)
+    return await delete_category_service(db, category_id, current_user.id)
 
 
