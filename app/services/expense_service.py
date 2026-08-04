@@ -5,6 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.models.category import Category
 from app.models.expense import Expense
 from app.schemas.expense import ExpenseCreate, ExpenseUpdate
+from app.core.exceptions import NotFoundException
 
 
 async def validate_category_ownership(
@@ -22,9 +23,7 @@ async def validate_category_ownership(
     category = result.scalars().first()
 
     if not category:
-        raise HTTPException(
-            status_code=404,
-            detail="Category not found"
+        raise NotFoundException("Category not found"
         )
 
     return category
@@ -90,10 +89,7 @@ async def update_expense_service(
     expense = result.scalars().first()
 
     if not expense:
-        raise HTTPException(
-            status_code=404,
-            detail="Expense not found"
-        )
+        NotFoundException("Expense not found")
 
     update_data = expense_data.model_dump(
         exclude_unset=True
@@ -135,9 +131,7 @@ async def delete_expense_service(
     expense = result.scalars().first()
 
     if not expense:
-        raise HTTPException(
-            status_code=404,
-            detail="Expense not found"
+        raise NotFoundException("Expense not found"
         )
 
     expense.is_deleted = True

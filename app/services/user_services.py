@@ -10,6 +10,7 @@ from app.core.security import(
 from app.schemas.user import UserCreate
 from fastapi.security import OAuth2PasswordRequestForm
 from app.models.user import User
+from app.core.exceptions import AlreadyExistsException,UnauthorizedException
 
 
 async def create_user_service(
@@ -27,9 +28,7 @@ async def create_user_service(
     existing_user = result.scalars().first()
 
     if existing_user:
-        raise HTTPException(
-            status_code=400,
-            detail="User already exists"
+        raise AlreadyExistsException("User already exists"
         )
 
     db_user = User(
@@ -57,18 +56,16 @@ async def user_login_service(
     db_user = result.scalars().first()
 
     if not db_user:
-        raise HTTPException(
-            status_code=404,
-            detail="User not found"
-        )
+        raise UnauthorizedException(
+                "Invalid credentials"
+            )
 
     if not verify_password(
         form_data.password,
         db_user.password
     ):
-        raise HTTPException(
-            status_code=401,
-            detail="Invalid credentials"
+        raise UnauthorizedException(
+            "Invalid credentials"
         )
 
     access_token = create_access_token({
@@ -114,9 +111,7 @@ async def refresh_access_token_service(
         token_type = payload.get("type")
 
         if email is None or token_type != "refresh":
-            raise HTTPException(
-                status_code=401,
-                detail="Invalid refresh token"
+            raise UnauthorizedException("Invalid refresh token"
             )
 
         statement = select(User).where(
@@ -128,9 +123,7 @@ async def refresh_access_token_service(
         user = result.scalars().first()
 
         if not user:
-            raise HTTPException(
-                status_code=401,
-                detail="Could not validate credentials"
+            raise UnauthorizedException("Could not validate credentials"
             )
 
         new_access_token = create_access_token({
@@ -143,7 +136,5 @@ async def refresh_access_token_service(
         }
 
     except JWTError:
-        raise HTTPException(
-            status_code=401,
-            detail="Invalid or expired refresh token"
+        raise UnauthorizedException("Invalid or expired refresh token"
         )

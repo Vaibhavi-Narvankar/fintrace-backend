@@ -4,6 +4,10 @@ from app.models import Expense
 from app.models.category import Category
 from fastapi import HTTPException
 from app.schemas.category import CategoryCreate, CategoryUpdate
+from app.core.exceptions import (
+    NotFoundException,
+    AlreadyExistsException,
+)
 
 
 async def get_user_categories_with_budget(
@@ -65,10 +69,9 @@ async def create_category_service(
     existing = result.scalars().first()
 
     if existing:
-        raise HTTPException(
-            status_code=400,
-            detail="Category already exists"
-        )
+        raise AlreadyExistsException(
+                "Category already exists"
+            )
 
     new_category = Category(
         name=category.name,
@@ -99,10 +102,9 @@ async def update_category_service(
     category = result.scalars().first()
 
     if not category:
-        raise HTTPException(
-            status_code=404,
-            detail="Category not found"
-        )
+        raise NotFoundException(
+                "Category not found"
+            )
 
     update_data = category_data.model_dump(
         exclude_unset=True
@@ -124,10 +126,9 @@ async def update_category_service(
         existing = existing_result.scalars().first()
 
         if existing:
-            raise HTTPException(
-                status_code=400,
-                detail="Category already exists"
-            )
+            raise AlreadyExistsException(
+                            "Category already exists"
+                        )
 
     for field, value in update_data.items():
         setattr(category, field, value)
@@ -153,9 +154,8 @@ async def delete_category_service(
     category = result.scalars().first()
 
     if not category:
-        raise HTTPException(
-            status_code=404,
-            detail="Category not found"
+        raise NotFoundException(
+            "Category not found"
         )
 
     category.is_deleted = True
@@ -178,9 +178,7 @@ async def get_category_service(
     category = result.scalars().first()
 
     if not category:
-        raise HTTPException(
-            status_code=404,
-            detail="Category not found"
+        raise NotFoundException("Category not found"
         )
 
     return category

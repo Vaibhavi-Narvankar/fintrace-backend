@@ -4,6 +4,7 @@ from datetime import datetime, timedelta
 from fastapi import HTTPException, status
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
+from app.core.exceptions import BadRequestException
 
 from app.models.user import User
 from app.models.expense import Expense
@@ -105,10 +106,7 @@ async def get_dashboard_trends_service(
         end_date = current_date + timedelta(days=1)
 
     else:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Invalid period. Use weekly, monthly or yearly."
-        )
+        raise BadRequestException("Invalid period. Use weekly, monthly or yearly.")
 
     period_column = func.date_trunc(
         group_by_unit,
