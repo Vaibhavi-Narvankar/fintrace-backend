@@ -1,7 +1,7 @@
 from datetime import datetime, date
 from decimal import Decimal
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field,field_validator
 
 
 class ExpenseCreate(BaseModel):
@@ -35,6 +35,26 @@ class ExpenseCreate(BaseModel):
         default=None,
         ge=0
     )
+
+    @field_validator("expense_name")
+    @classmethod
+    def normalize_expense_name(cls, value: str) -> str:
+        value = value.strip()
+
+        if not value:
+            raise ValueError("Expense name cannot be empty")
+
+        return value
+
+    @field_validator("payment_type")
+    @classmethod
+    def normalize_payment_type(cls, value: str) -> str:
+        value = value.strip().upper()
+
+        if not value:
+            raise ValueError("Payment type cannot be empty")
+
+        return value
 
 
 class ExpenseResponse(BaseModel):
@@ -89,3 +109,30 @@ class ExpenseUpdate(BaseModel):
         default=None,
         ge=0
     )
+
+    @field_validator("expense_name")
+    @classmethod
+    def normalize_expense_name(cls, value: str | None) -> str | None:
+        if value is None:
+            return None
+
+        value = value.strip()
+
+        if not value:
+            raise ValueError("Expense name cannot be empty")
+
+        return value
+
+
+    @field_validator("payment_type")
+    @classmethod
+    def normalize_payment_type(cls, value: str | None) -> str | None:
+        if value is None:
+            return None
+
+        value = value.strip().upper()
+
+        if not value:
+            raise ValueError("Payment type cannot be empty")
+
+        return value

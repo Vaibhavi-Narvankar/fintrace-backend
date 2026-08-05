@@ -41,3 +41,15 @@ async def validation_exception_handler(
             "errors": errors,
         }
     )
+
+async def unexpected_exception_handler(
+    request: Request,
+    exc: Exception
+):
+    return JSONResponse(
+        status_code=500,
+        content={
+            "success": False,
+            "message": "An unexpected error occurred"
+        }
+    )

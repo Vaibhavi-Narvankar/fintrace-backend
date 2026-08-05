@@ -7,7 +7,8 @@ from app.core.exceptions import AppException
 from app.core.exception_handlers import (
     app_exception_handler,
     validation_exception_handler,
-    RequestValidationError
+    RequestValidationError,
+    unexpected_exception_handler,
 )
 
 app = FastAPI()
@@ -22,6 +23,11 @@ app.add_exception_handler(
     validation_exception_handler
 )
 
+app.add_exception_handler(
+    Exception,
+    unexpected_exception_handler
+)
+
 @app.get("/")
 def test_db():
     try:
@@ -30,4 +36,6 @@ def test_db():
         return {"message": "DB connected successfully"}
     except Exception as e:
         return {"error": str(e)}
+
+
 

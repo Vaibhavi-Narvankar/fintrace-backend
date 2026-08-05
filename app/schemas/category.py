@@ -1,23 +1,21 @@
 from datetime import datetime
-
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 
 class CategoryCreate(BaseModel):
-    name: str = Field(
-        min_length=1,
-        max_length=50
-    )
+    name: str = Field(min_length=1, max_length=50)
+    budget: float | None = Field(default=None, ge=0)
+    color: str | None = Field(default=None, max_length=50)
 
-    budget: float | None = Field(
-        default=None,
-        ge=0
-    )
+    @field_validator("name")
+    @classmethod
+    def normalize_name(cls, value: str) -> str:
+        value = value.strip()
 
-    color: str | None = Field(
-        default=None,
-        max_length=50
-    )
+        if not value:
+            raise ValueError("Category name cannot be empty")
+
+        return value.title()
 
 
 class CategoryResponse(BaseModel):
@@ -34,18 +32,19 @@ class CategoryResponse(BaseModel):
 
 
 class CategoryUpdate(BaseModel):
-    name: str | None = Field(
-        default=None,
-        min_length=1,
-        max_length=50
-    )
+    name: str | None = Field(default=None, min_length=1, max_length=50)
+    budget: float | None = Field(default=None, ge=0)
+    color: str | None = Field(default=None, max_length=50)
 
-    budget: float | None = Field(
-        default=None,
-        ge=0
-    )
+    @field_validator("name")
+    @classmethod
+    def normalize_name(cls, value: str | None) -> str | None:
+        if value is None:
+            return None
 
-    color: str | None = Field(
-        default=None,
-        max_length=50
-    )
+        value = value.strip()
+
+        if not value:
+            raise ValueError("Category name cannot be empty")
+
+        return value.title()

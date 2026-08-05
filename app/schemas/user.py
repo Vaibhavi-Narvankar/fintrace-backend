@@ -1,7 +1,7 @@
 from datetime import datetime
 from decimal import Decimal
 
-from pydantic import BaseModel, EmailStr, Field
+from pydantic import BaseModel, EmailStr, Field,field_validator
 
 
 class UserCreate(BaseModel):
@@ -12,14 +12,10 @@ class UserCreate(BaseModel):
         max_length=128
     )
 
-
-class UserUpdate(BaseModel):
-    email: EmailStr | None = None
-
-    monthly_income: Decimal | None = Field(
-        default=None,
-        ge=0
-    )
+    @field_validator("email")
+    @classmethod
+    def normalize_email(cls, value: str) -> str:
+        return value.strip().lower()
 
 
 class UserResponse(BaseModel):

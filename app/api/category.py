@@ -12,54 +12,70 @@ from app.services.category_service import (
     delete_category_service,
     get_category_service
 )
+from app.schemas.common_response_schema import ApiResponse
 
 router = APIRouter(prefix="/categories", tags=["Categories"])
 
-@router.post("/", response_model=CategoryResponse)
+@router.post("/", response_model=ApiResponse[CategoryResponse])
 async def create_category(
-        category:CategoryCreate,
-        db: AsyncSession = Depends(get_db),
-        current_user: User = Depends(get_current_user)
+    category: CategoryCreate,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user)
 ):
-    return await create_category_service(
-        db,
-        category,
-        current_user.id
+    result = await create_category_service(db, category, current_user.id)
+    return ApiResponse(
+        message="Category created successfully",
+        data=result
     )
 
-@router.get("/", response_model=list[CategoryResponse])
+@router.get("/", response_model=ApiResponse[list[CategoryResponse]])
 async def get_categories(
-        db: AsyncSession = Depends(get_db),
-        current_user : User = Depends(get_current_user)
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user)
 ):
-    return await get_user_categories_with_budget(db, current_user.id)
+    result = await get_user_categories_with_budget(db, current_user.id)
+    return ApiResponse(
+        message="Categories fetched successfully",
+        data=result
+    )
 
-@router.get("/{category_id}", response_model=CategoryResponse)
+@router.get("/{category_id}", response_model=ApiResponse[CategoryResponse])
 async def get_category(
-        category_id : int,
-        db: AsyncSession = Depends(get_db),
-        current_user : User = Depends(get_current_user)
+    category_id: int,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user)
 ):
-    return await get_category_service(
-        db,
-    category_id,
-    current_user.id)
+    result = await get_category_service(db, category_id, current_user.id)
+    return ApiResponse(
+        message="Category fetched successfully",
+        data=result
+    )
 
-@router.patch("/{category_id}", response_model=CategoryResponse)
+@router.patch("/{category_id}", response_model=ApiResponse[CategoryResponse])
 async def update_category(
-        category_id : int,
-        category_data : CategoryUpdate,
-        db:AsyncSession=Depends(get_db),
-        current_user : User = Depends(get_current_user)
+    category_id: int,
+    category_data: CategoryUpdate,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user)
 ):
-    return await update_category_service(db, category_id, category_data, current_user.id)
+    result = await update_category_service(
+        db, category_id, category_data, current_user.id
+    )
+    return ApiResponse(
+        message="Category updated successfully",
+        data=result
+    )
 
-
-@router.delete("/{category_id}", status_code=204)
-async def delete_category(category_id:int,
-                    db:AsyncSession=Depends(get_db),
-                    current_user: User = Depends(get_current_user)
-                    ):
-    return await delete_category_service(db, category_id, current_user.id)
+@router.delete("/{category_id}", response_model=ApiResponse[None])
+async def delete_category(
+    category_id: int,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    await delete_category_service(db, category_id, current_user.id)
+    return ApiResponse(
+        message="Category deleted successfully",
+        data=None
+    )
 
 

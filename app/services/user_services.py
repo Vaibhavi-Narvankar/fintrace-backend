@@ -47,8 +47,10 @@ async def user_login_service(
     db: AsyncSession,
     form_data: OAuth2PasswordRequestForm
 ):
+    email = form_data.username.strip().lower()
+
     statement = select(User).where(
-        User.email == form_data.username,
+        User.email == email,
         User.is_deleted.is_(False)
     )
 
