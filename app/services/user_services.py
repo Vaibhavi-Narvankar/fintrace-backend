@@ -11,6 +11,9 @@ from app.schemas.user import UserCreate
 from fastapi.security import OAuth2PasswordRequestForm
 from app.models.user import User
 from app.core.exceptions import AlreadyExistsException,UnauthorizedException
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 async def create_user_service(
@@ -58,17 +61,24 @@ async def user_login_service(
     db_user = result.scalars().first()
 
     if not db_user:
-        raise UnauthorizedException(
-                "Invalid credentials"
-            )
+        logger.warning(
+            "login_failed | reason=invalid_credentials"
+        )
+        raise UnauthorizedException("Invalid credentials")
 
     if not verify_password(
         form_data.password,
         db_user.password
     ):
-        raise UnauthorizedException(
-            "Invalid credentials"
+        logger.warning(
+            "login_failed | reason=invalid_credentials"
         )
+        raise UnauthorizedException("Invalid credentials")
+
+    logger.info(
+        "login_success | user_id=%s",
+        db_user.id
+    )
 
     access_token = create_access_token({
         "sub": db_user.email
@@ -113,8 +123,10 @@ async def refresh_access_token_service(
         token_type = payload.get("type")
 
         if email is None or token_type != "refresh":
-            raise UnauthorizedException("Invalid refresh token"
+            logger.warning(
+                "token_refresh_failed | reason=invalid_refresh_token"
             )
+            raise UnauthorizedException("Invalid refresh token")
 
         statement = select(User).where(
             User.email == email,
@@ -125,12 +137,21 @@ async def refresh_access_token_service(
         user = result.scalars().first()
 
         if not user:
-            raise UnauthorizedException("Could not validate credentials"
+            logger.warning(
+                "token_refresh_failed | reason=user_not_found"
+            )
+            raise UnauthorizedException(
+                "Could not validate credentials"
             )
 
         new_access_token = create_access_token({
             "sub": user.email
         })
+
+        logger.info(
+            "token_refresh_success | user_id=%s",
+            user.id
+        )
 
         return {
             "access_token": new_access_token,
@@ -138,5 +159,9 @@ async def refresh_access_token_service(
         }
 
     except JWTError:
-        raise UnauthorizedException("Invalid or expired refresh token"
+        logger.warning(
+            "token_refresh_failed | reason=invalid_or_expired_token"
+        )
+        raise UnauthorizedException(
+            "Invalid or expired refresh token"
         )
