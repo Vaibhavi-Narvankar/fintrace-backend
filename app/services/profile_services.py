@@ -1,6 +1,9 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.models.user import User
 from app.schemas.profile import ProfileUpdate
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 def get_profile_service(
@@ -22,5 +25,9 @@ async def update_profile_service(
 
     await db.commit()
     await db.refresh(current_user)
+    logger.info(
+        "profile_updated | user_id=%s",
+        current_user.id
+    )
 
     return current_user

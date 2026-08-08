@@ -6,6 +6,9 @@ from app.models.category import Category
 from app.models.expense import Expense
 from app.schemas.expense import ExpenseCreate, ExpenseUpdate
 from app.core.exceptions import NotFoundException
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 async def validate_category_ownership(
@@ -55,6 +58,11 @@ async def create_expense_service(
 
     await db.commit()
     await db.refresh(new_expense)
+    logger.info(
+        "expense_created | user_id=%s | expense_id=%s",
+        user_id,
+        new_expense.id
+    )
 
     return new_expense
 
@@ -113,6 +121,11 @@ async def update_expense_service(
 
     await db.commit()
     await db.refresh(expense)
+    logger.info(
+        "expense_updated | user_id=%s | expense_id=%s",
+        user_id,
+        expense.id
+    )
 
     return expense
 
@@ -137,3 +150,8 @@ async def delete_expense_service(
     expense.is_deleted = True
 
     await db.commit()
+    logger.info(
+        "expense_deleted | user_id=%s | expense_id=%s",
+        user_id,
+        expense.id
+    )

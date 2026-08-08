@@ -8,6 +8,9 @@ from app.core.exceptions import (
     NotFoundException,
     AlreadyExistsException,
 )
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 async def get_user_categories_with_budget(
@@ -82,6 +85,11 @@ async def create_category_service(
 
     await db.commit()
     await db.refresh(new_category)
+    logger.info(
+        "category_created | user_id=%s | category_id=%s",
+        user_id,
+        new_category.id
+    )
 
     return new_category
 
@@ -135,6 +143,11 @@ async def update_category_service(
 
     await db.commit()
     await db.refresh(category)
+    logger.info(
+        "category_updated | user_id=%s | category_id=%s",
+        user_id,
+        category.id
+    )
 
     return category
 
@@ -161,6 +174,11 @@ async def delete_category_service(
     category.is_deleted = True
 
     await db.commit()
+    logger.info(
+        "category_deleted | user_id=%s | category_id=%s",
+        user_id,
+        category.id
+    )
 
 async def get_category_service(
     db: AsyncSession,
