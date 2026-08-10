@@ -1,153 +1,196 @@
 # FinTrace
 
-FinTrace is a personal finance management backend built using FastAPI and PostgreSQL. It provides secure authentication, expense tracking, category management, user profile management, and analytical dashboard APIs.
-
----
+A production-oriented personal finance management backend built with
+**FastAPI and PostgreSQL**, focused on secure API design, async
+processing, database performance, and observability.
 
 ## Features
 
-### Authentication
+### Authentication & Authorization
 
-- User Registration
-- User Login
-- JWT Access Token Authentication
-- Refresh Token Authentication
-- Password Hashing (bcrypt)
+-   JWT access and refresh token authentication
+-   Password hashing with bcrypt
+-   Protected API endpoints
+-   Access vs refresh token validation
+-   User ownership validation
+-   Soft-delete aware authentication
+-   Secure authentication error handling
 
-### User Profile
+### Expense & Category Management
 
-- View Profile
-- Update Profile
-- Monthly Income Management
-- Currency Preference
-- Timezone Preference
-- Profile Picture Support
+-   Create, update, retrieve and soft-delete expenses
+-   Expense categorization
+-   Payment and tax tracking
+-   Historical expense dates
+-   User-scoped resources
+-   Category ownership validation
 
-### Category Management
+### Dashboard & Analytics
 
-- Create Category
-- View Categories
-- Update Category
-- Soft Delete Category
-- Budget Allocation per Category
+-   Dashboard summary
+-   Weekly, monthly and yearly expense trends
+-   Category-wise expense breakdown
+-   Highest spending category
+-   Budget progress
+-   Recurring expense detection
+-   PostgreSQL aggregation queries
 
-### Expense Management
+### Database
 
-- Create Expense
-- View Expenses
-- Update Expense
-- Soft Delete Expense
-- Expense Categorization
-- Payment Type Support
+-   PostgreSQL
+-   SQLAlchemy 2.0
+-   Async SQLAlchemy sessions
+-   Alembic migrations
+-   Relationships and normalization
+-   Query indexing
+-   Timestamps
+-   Soft deletes
 
-### Dashboard Analytics
+### Validation & Error Handling
 
-- Dashboard Summary
-- Expense Trends (Weekly / Monthly / Yearly)
-- Category-wise Expense Breakdown
-- Highest Spending Category
-- Budget Progress
-- Recurring Expenses
+-   Pydantic v2 validation
+-   Strict input validation
+-   Standardized API responses
+-   Custom exceptions
+-   Global exception handling
+-   Secure error responses
+-   Prevention of sensitive error leakage
 
----
+### Logging & Monitoring
 
-## Database Features
+-   Centralized logging
+-   Request logging middleware
+-   Request IDs and request duration tracking
+-   Client IP logging
+-   Authentication event logging
+-   Transaction audit logging
+-   Suspicious activity logging
+-   Application health check
 
-- PostgreSQL
-- SQLAlchemy ORM
-- Alembic Migrations
-- Database Relationships
-- Database Normalization
-- Query Indexing
-- Soft Delete
-- Automatic Timestamps
+### Security / AppSec
 
----
+Security work is guided by OWASP Top 10 and API security principles.
+
+-   SQL injection audit
+-   SQLAlchemy parameterized queries
+-   JWT security
+-   Ownership-based authorization
+-   IDOR audit
+-   Strict validation
+-   Secure error handling
+-   Sensitive information protection in logs
 
 ## Architecture
 
-Layered Architecture
+``` text
+Client
+  ↓
+API / Routers
+  ↓
+Authentication & Validation
+  ↓
+Service Layer
+  ↓
+Async SQLAlchemy
+  ↓
+PostgreSQL
+```
 
-- Routers
-- Services
-- Models
-- Schemas
-- Database Layer
-- Dependency Injection
-- Environment Configuration
+### Project Structure
 
----
-
-## Tech Stack
-
-- FastAPI
-- PostgreSQL
-- SQLAlchemy 2.0
-- Alembic
-- Pydantic v2
-- JWT Authentication
-- Passlib (bcrypt)
-- Docker
-
----
-
-## Project Structure
-
-```text
+``` text
 app/
 ├── api/
 ├── core/
 ├── db/
+├── middleware/
 ├── models/
 ├── schemas/
 ├── services/
+└── main.py
 ```
 
----
+## Tech Stack
 
-## Concepts Implemented
+**Backend** - Python - FastAPI - Pydantic v2 - SQLAlchemy 2.0 -
+PostgreSQL - Alembic
 
-### Backend Development
+**Infrastructure** - Docker - Docker Compose - Uvicorn - AWS
 
-- REST API Development
-- Layered Architecture
-- Dependency Injection
-- Service Layer Pattern
+**Security** - JWT - Passlib / bcrypt - OWASP security practices
 
-### Database
+## Development Status
 
-- SQLAlchemy ORM
-- Database Relationships
-- Normalization
-- Indexing
-- Aggregate Queries
-- Soft Delete
-- Alembic Migrations
+### Completed
 
-### Security
+-   Core FastAPI backend
+-   PostgreSQL + SQLAlchemy
+-   Alembic migrations
+-   Authentication and authorization
+-   Expense, category and profile APIs
+-   Dashboard analytics
+-   Async database architecture
+-   Request validation
+-   Standardized responses
+-   Global exception handling
+-   Logging and monitoring foundation
+-   Initial OWASP security audit
 
-- JWT Authentication
-- Refresh Tokens
-- Password Hashing
-- Protected Routes
+### In Progress
 
-### Dashboard Analytics
+-   OWASP Top 10 security hardening
+-   IDOR / access-control testing
+-   Security headers
+-   Production security hardening
 
-- Aggregate Functions
-- Group By Queries
-- Date-based Analytics
-- Budget Calculations
-- Category Analytics
+### Planned
 
----
+-   Bank and credit-card statement upload
+-   PDF transaction extraction
+-   RAG-based financial intelligence
+-   AI-powered financial assistant
+-   Vector database integration
+-   AWS production deployment
+-   CI/CD improvements
+-   Advanced monitoring
 
-## Upcoming Features
+## AI / RAG Roadmap
 
-- Pagination
-- Filtering & Search
-- Sorting
-- Unit Testing
-- Logging
-- Redis Caching
-- Background Tasks
-- API Rate Limiting
+The next major feature is AI-powered financial intelligence using RAG.
+
+Planned flow:
+
+``` text
+Bank / Credit Card Statement
+        ↓
+Document Upload
+        ↓
+Text & Transaction Extraction
+        ↓
+Chunking + Embeddings
+        ↓
+Vector Database
+        ↓
+RAG Retrieval
+        ↓
+Context-aware AI Response
+```
+
+The goal is to let users ask questions about their own financial
+documents and transaction history rather than generating generic
+financial summaries.
+
+## Project Goal
+
+FinTrace is being built to demonstrate practical backend engineering
+beyond basic CRUD APIs, with a focus on:
+
+-   Secure API development
+-   Async architecture
+-   Database performance
+-   Authentication and authorization
+-   Validation and error handling
+-   Logging and observability
+-   OWASP security
+-   AI/RAG integration
+-   Production deployment
