@@ -80,6 +80,7 @@ async def get_current_user(
         headers={"WWW-Authenticate": "Bearer"},
     )
 
+
     try:
         payload = jwt.decode(
             token,
@@ -90,6 +91,7 @@ async def get_current_user(
         email = payload.get("sub")
         token_type = payload.get("type")
 
+
         if email is None or token_type != "access":
             raise credentials_exception
 
@@ -99,7 +101,6 @@ async def get_current_user(
         )
 
         result = await db.execute(statement)
-
         user = result.scalars().first()
 
         if user is None:
@@ -107,5 +108,7 @@ async def get_current_user(
 
         return user
 
-    except JWTError:
-        raise credentials_exception
+    except JWTError as e:
+         print("JWT ERROR TYPE:", type(e).__name__)
+         print("JWT ERROR:", str(e))
+         raise credentials_exception

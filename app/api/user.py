@@ -29,11 +29,7 @@ async def login(
     form_data: OAuth2PasswordRequestForm = Depends(),
     db: AsyncSession = Depends(get_db)
 ):
-    result = await user_login_service(db, form_data)
-    return ApiResponse(
-        message="Login successful",
-        data=result
-    )
+    return await user_login_service(db, form_data)
 
 @router.get("/", response_model=ApiResponse[list[UserResponse]])
 async def get_users(

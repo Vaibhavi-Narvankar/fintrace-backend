@@ -12,11 +12,15 @@ from app.core.exception_handlers import (
     unexpected_exception_handler,
 )
 from app.middleware.request_logging import request_logging_middleware
+from sqlalchemy import text
+from app.middleware.security_headers import security_headers_middleware
+from fastapi.middleware.cors import CORSMiddleware
 
 setup_logging()
 app = FastAPI()
 app.include_router(router)
 app.middleware("http")(request_logging_middleware)
+app.middleware("http")(security_headers_middleware)
 app.add_exception_handler(
     AppException,
     app_exception_handler
@@ -31,12 +35,22 @@ app.add_exception_handler(
     Exception,
     unexpected_exception_handler
 )
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "http://localhost:3000",
+        "http://localhost:5173",
+    ],
+    allow_credentials=True,
+    allow_methods=["GET", "POST", "PATCH", "DELETE"],
+    allow_headers=["Authorization", "Content-Type"],
+)
 
 @app.get("/")
-def test_db():
+async def test_db():
     try:
-        connection = engine.connect()
-        connection.close()
+        async with engine.connect() as connection:
+            await connection.execute(text("SELECT 1"))
         return {"message": "DB connected successfully"}
     except Exception as e:
         return {"error": str(e)}
