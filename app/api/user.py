@@ -7,9 +7,12 @@ from app.core.security import get_current_user
 from fastapi.security import OAuth2PasswordRequestForm
 from app.services.user_services import (user_login_service, create_user_service, get_user_service,refresh_access_token_service)
 from app.schemas.common_response_schema import ApiResponse
+from fastapi import Request
+from app.core.rate_limit import limiter
 
 
 router = APIRouter(prefix="/users", tags=["Users"])
+limiter = Limiter(key_func=get_remote_address)
 
 
 
@@ -25,7 +28,9 @@ async def create_user(
     )
 
 @router.post("/login")
+@limiter.limit("5/minute")
 async def login(
+    request: Request
     form_data: OAuth2PasswordRequestForm = Depends(),
     db: AsyncSession = Depends(get_db)
 ):

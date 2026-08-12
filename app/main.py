@@ -15,9 +15,18 @@ from app.middleware.request_logging import request_logging_middleware
 from sqlalchemy import text
 from app.middleware.security_headers import security_headers_middleware
 from fastapi.middleware.cors import CORSMiddleware
+from app.core.rate_limit import limiter
+from slowapi.errors import RateLimitExceeded
+from slowapi import _rate_limit_exceeded_handler
 
 setup_logging()
 app = FastAPI()
+app.state.limiter = limiter
+app.add_exception_handler(
+    RateLimitExceeded,
+    _rate_limit_exceeded_handler
+
+)
 app.include_router(router)
 app.middleware("http")(request_logging_middleware)
 app.middleware("http")(security_headers_middleware)
