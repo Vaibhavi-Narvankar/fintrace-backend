@@ -1,7 +1,12 @@
 from datetime import datetime
 from decimal import Decimal
 
-from pydantic import BaseModel, EmailStr, Field,field_validator
+from pydantic import (
+    BaseModel,
+    EmailStr,
+    Field,
+    field_validator
+)
 
 
 class UserCreate(BaseModel):
@@ -16,6 +21,16 @@ class UserCreate(BaseModel):
     @classmethod
     def normalize_email(cls, value: str) -> str:
         return value.strip().lower()
+
+    @field_validator("password")
+    @classmethod
+    def validate_password_length(cls, value: str) -> str:
+        if len(value.encode("utf-8")) > 72:
+            raise ValueError(
+                "Password must not exceed 72 bytes"
+            )
+
+        return value
 
 
 class UserResponse(BaseModel):
@@ -36,6 +51,16 @@ class UserLogin(BaseModel):
         min_length=1,
         max_length=128
     )
+
+    @field_validator("password")
+    @classmethod
+    def validate_password_length(cls, value: str) -> str:
+        if len(value.encode("utf-8")) > 72:
+            raise ValueError(
+                "Password must not exceed 72 bytes"
+            )
+
+        return value
 
 
 class RefreshTokenRequest(BaseModel):
