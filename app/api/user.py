@@ -12,7 +12,6 @@ from app.core.rate_limit import limiter
 
 
 router = APIRouter(prefix="/users", tags=["Users"])
-limiter = Limiter(key_func=get_remote_address)
 
 
 
@@ -30,7 +29,7 @@ async def create_user(
 @router.post("/login")
 @limiter.limit("5/minute")
 async def login(
-    request: Request
+    request: Request,
     form_data: OAuth2PasswordRequestForm = Depends(),
     db: AsyncSession = Depends(get_db)
 ):
