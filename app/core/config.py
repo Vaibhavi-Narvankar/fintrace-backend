@@ -2,6 +2,8 @@ from pydantic_settings import BaseSettings
 
 
 class Settings(BaseSettings):
+    access_secret_key: str
+    refresh_secret_key: str
     APP_NAME: str
     DEBUG: bool
 

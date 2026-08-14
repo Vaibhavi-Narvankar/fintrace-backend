@@ -2,6 +2,12 @@ from sqlalchemy import Column, Integer, String, DateTime, Boolean,Numeric
 from sqlalchemy.sql import func
 from sqlalchemy.orm import relationship
 from app.db.base import Base
+import enum
+from sqlalchemy import Enum
+
+class UserRole(str, enum.Enum):
+    USER = "user"
+    ADMIN = "admin"
 
 class User(Base):
     __tablename__ = "users"
@@ -48,3 +54,8 @@ class User(Base):
             Integer,
             nullable=True
         )
+    role = Column(
+        Enum(UserRole, name="user_role"),
+        nullable=False,
+        default=UserRole.USER
+    )
