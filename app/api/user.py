@@ -9,6 +9,8 @@ from app.services.user_services import (user_login_service, create_user_service,
 from app.schemas.common_response_schema import ApiResponse
 from fastapi import Request
 from app.core.rate_limit import limiter
+from app.core.rbac import require_role
+from app.models.user import UserRole
 
 
 router = APIRouter(prefix="/users", tags=["Users"])
@@ -58,4 +60,13 @@ async def refresh_access_token(
     return ApiResponse(
         message="Access token refreshed successfully",
         data=result
+    )
+
+@router.get("/admin-only")
+async def admin_only(
+    current_user: User = Depends(require_role(UserRole.ADMIN))
+):
+    return ApiResponse(
+        message= "Welcome, admin!",
+        data= current_user.email
     )

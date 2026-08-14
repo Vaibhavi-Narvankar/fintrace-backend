@@ -51,9 +51,9 @@ def downgrade() -> None:
     op.drop_column("users", "role")
 
     role_enum = sa.Enum(
-        "USER",
-        "ADMIN",
-        name="user_role"
-    )
+            "user",
+            "admin",
+            name="user_role"
+        )
 
     role_enum.drop(op.get_bind(), checkfirst=True)
