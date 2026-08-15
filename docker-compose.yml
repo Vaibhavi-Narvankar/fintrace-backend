@@ -3,6 +3,8 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+    volumes:
+      - .:/app
     container_name: fintrace_api
     ports:
       - "8000:8000"
