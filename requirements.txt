@@ -16,3 +16,4 @@ ecdsa==0.19.2
 pyasn1==0.6.4
 slowapi==0.1.10
 psycopg2-binary==2.9.12
+PyMuPDF==1.26.4
