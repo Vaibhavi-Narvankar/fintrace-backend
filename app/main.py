@@ -65,4 +65,25 @@ async def test_db():
         return {"error": str(e)}
 
 
+@app.get("/health")
+async def health_check():
+    try:
+        async with engine.connect() as connection:
+            await connection.execute(text("SELECT 1"))
+
+        return {
+            "status": "ok",
+            "service": "fintrace-api",
+            "database": "ok"
+        }
+
+    except Exception:
+        return {
+            "status": "degraded",
+            "service": "fintrace-api",
+            "database": "unavailable"
+        }
+
+
+
 
