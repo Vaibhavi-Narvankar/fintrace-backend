@@ -1,5 +1,5 @@
 from contextlib import asynccontextmanager
-from fastapi import FastAPI
+from fastapi import FastAPI, status
 from app.db.base import Base
 from app.db.session import engine
 from app.api import router
@@ -18,6 +18,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.core.rate_limit import limiter
 from slowapi.errors import RateLimitExceeded
 from slowapi import _rate_limit_exceeded_handler
+from fastapi.responses import JSONResponse
 
 setup_logging()
 app = FastAPI()
@@ -78,12 +79,14 @@ async def health_check():
         }
 
     except Exception:
-        return {
-            "status": "degraded",
-            "service": "fintrace-api",
-            "database": "unavailable"
-        }
-
+        return JSONResponse(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            content={
+                "status": "degraded",
+                "service": "fintrace-api",
+                "database": "unavailable"
+            }
+        )
 
 
 
