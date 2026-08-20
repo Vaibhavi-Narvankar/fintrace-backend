@@ -75,6 +75,7 @@ async def health_check():
         return {
             "status": "ok",
             "service": "fintrace-api",
+            "version": "1.0.0",
             "database": "ok"
         }
 
@@ -84,6 +85,7 @@ async def health_check():
             content={
                 "status": "degraded",
                 "service": "fintrace-api",
+                "version": "1.0.0",
                 "database": "unavailable"
             }
         )
